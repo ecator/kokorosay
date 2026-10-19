@@ -1,0 +1,46 @@
+[project]
+name = "kokorosay"
+dynamic = ["version"]
+description = "A CLI tool for Kokoro"
+readme = "README.md"
+authors = [{ name = "Martin", email = "qule520@126.com" }]
+requires-python = ">=3.14"
+dependencies = [
+    "kokoro>=0.9.4",
+    "misaki[en,ja,ko,vi,zh]>=0.9.4",
+    "sounddevice>=0.5.6",
+    "soundfile>=0.14.0",
+    "unidic>=1.1.0",
+]
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+
+[project.urls]
+Homepage = "https://github.com/ecator/kokorosay"
+Repository = "https://github.com/ecator/kokorosay"
+
+[project.scripts]
+kokorosay = "kokorosay.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=9.1.1", "ruff>=0.17.1"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py314"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "UP", "B", "SIM", "BLE", "RUF"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-m 'not integration'"
+markers = [
+    "integration: needs the real Kokoro model and/or an audio device (deselected by default; run with `-m integration`)",
+]
