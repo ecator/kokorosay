@@ -149,6 +149,10 @@ subprocess.check_call([sys.executable, "-m", "unidic", "download"])
    - Existing files are overwritten without prompting.
    - Missing parent directories are created automatically
      (`Path.parent.mkdir(parents=True, exist_ok=True)`).
+   - After a successful write, print `Wrote <OUTPUT> (<seconds> s)` to
+     **stderr**, where the duration is `samples / 24000` rounded to two
+     decimal places (e.g. `Wrote out.wav (3.27 s)`). Nothing is printed to
+     stdout.
 3. **Segment merging**
    - Kokoro yields one audio chunk per segment. When writing to a file, all chunks
      MUST be concatenated in order and written as a **single** file, regardless of
@@ -172,8 +176,11 @@ subprocess.check_call([sys.executable, "-m", "unidic", "download"])
    - Synthesis that produces no audio at all is a runtime failure.
    - Errors go to stderr; stdout is reserved for user-requested output
      (e.g. `--list-voices`). Anything third-party libraries print to stdout
-     during synthesis is redirected to stderr, and warnings emitted by `torch`
-     are suppressed.
+     during synthesis is redirected to stderr, warnings emitted by `torch`
+     are suppressed, and so are `huggingface_hub`'s symlink-cache warning
+     (shown on Windows without Developer Mode) and its "unauthenticated
+     requests to the HF Hub" notice (the public model needs no `HF_TOKEN`);
+     other `huggingface_hub` warnings remain visible.
 
 ### Kokoro reference
 

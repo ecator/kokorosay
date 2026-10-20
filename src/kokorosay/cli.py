@@ -2,10 +2,11 @@
 
 import argparse
 import contextlib
+import logging
 import re
 import sys
 import warnings
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 from typing import BinaryIO
 
 from . import __version__, audio_io, setup_cmd, synth
@@ -17,6 +18,43 @@ EXIT_OK = 0
 EXIT_FAILURE = 1
 EXIT_USAGE = 2
 EXIT_INTERRUPTED = 130
+
+#: Logger used by ``huggingface_hub`` to relay server-sent ``X-HF-Warning`` headers.
+_HF_HTTP_LOGGER = "huggingface_hub.utils._http"
+
+
+class _HFUnauthenticatedFilter(logging.Filter):
+    """Drop the HF Hub notice suggesting to set ``HF_TOKEN`` for anonymous downloads."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return "unauthenticated requests to the HF Hub" not in record.getMessage()
+
+
+@contextlib.contextmanager
+def _quiet_third_party() -> Iterator[None]:
+    """Silence non-actionable third-party output while synthesizing.
+
+    - Anything printed to stdout is redirected to stderr to keep stdout clean.
+    - Warnings emitted by ``torch`` are ignored.
+    - ``huggingface_hub``'s symlink-cache warning (Windows without Developer
+      Mode; caching still works) is ignored.
+    - ``huggingface_hub``'s "unauthenticated requests" notice is dropped; the
+      public Kokoro model does not need a token.
+    """
+    hf_logger = logging.getLogger(_HF_HTTP_LOGGER)
+    hf_filter = _HFUnauthenticatedFilter()
+    hf_logger.addFilter(hf_filter)
+    try:
+        with contextlib.redirect_stdout(sys.stderr), warnings.catch_warnings():
+            warnings.filterwarnings("ignore", module=r"torch(\..*)?$")
+            warnings.filterwarnings(
+                "ignore",
+                message=r"`huggingface_hub` cache-system uses symlinks",
+                module=r"huggingface_hub(\..*)?$",
+            )
+            yield
+    finally:
+        hf_logger.removeFilter(hf_filter)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -148,10 +186,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.error("input text is empty")
 
     try:
-        # Third-party libraries occasionally print to stdout; keep stdout clean.
-        # torch emits internal deprecation/user warnings that are noise for CLI users.
-        with contextlib.redirect_stdout(sys.stderr), warnings.catch_warnings():
-            warnings.filterwarnings("ignore", module=r"torch(\..*)?$")
+        with _quiet_third_party():
             chunks = synth.iter_audio(
                 text,
                 voice=args.voice,
@@ -164,6 +199,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                     _error("no audio was generated")
                     return EXIT_FAILURE
                 audio_io.write_audio(output_path, audio, synth.SAMPLE_RATE)
+                duration = len(audio) / synth.SAMPLE_RATE
+                print(f"Wrote {output_path} ({duration:.2f} s)", file=sys.stderr)
             else:
                 if not audio_io.play_chunks(chunks, synth.SAMPLE_RATE):
                     _error("no audio was generated")

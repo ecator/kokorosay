@@ -173,6 +173,16 @@ def test_output_overwrites_existing_file(fake_kokoro, tmp_path: Path) -> None:
     assert sf.info(target).frames == 175
 
 
+def test_output_reports_path_and_duration(fake_kokoro, tmp_path: Path, capsys) -> None:
+    fake_kokoro.chunks = [np.zeros(36_000, dtype=np.float32), np.zeros(1_234, dtype=np.float32)]
+    target = tmp_path / "speech.wav"
+    assert cli.main(["hello", str(target)]) == 0
+    captured = capsys.readouterr()
+    assert captured.out == ""
+    # (36000 + 1234) / 24000 = 1.55141... -> "1.55"
+    assert f"Wrote {target} (1.55 s)" in captured.err
+
+
 def test_no_audio_generated_exits_1(fake_kokoro, tmp_path: Path, capsys) -> None:
     fake_kokoro.chunks = []
     assert cli.main(["hello", str(tmp_path / "x.wav")]) == 1
@@ -222,6 +232,62 @@ def test_torch_warnings_are_suppressed(
     messages = [str(w.message) for w in caught]
     assert "torch noise" not in messages
     assert "keep me" in messages
+
+
+def test_hf_symlink_warning_is_suppressed(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    import warnings
+
+    symlink_msg = (
+        "`huggingface_hub` cache-system uses symlinks by default to efficiently "
+        "store duplicated files but your machine does not support them."
+    )
+
+    def noisy(*args, **kwargs):
+        warnings.warn_explicit(
+            symlink_msg, UserWarning, "file_download.py", 1, module="huggingface_hub.file_download"
+        )
+        warnings.warn_explicit(
+            "other hf warning",
+            UserWarning,
+            "file_download.py",
+            2,
+            module="huggingface_hub.file_download",
+        )
+        yield np.ones(10, dtype=np.float32)
+
+    monkeypatch.setattr(synth, "iter_audio", noisy)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        assert cli.main(["hello", str(tmp_path / "x.wav")]) == 0
+    messages = [str(w.message) for w in caught]
+    assert symlink_msg not in messages
+    assert "other hf warning" in messages
+
+
+def test_hf_unauthenticated_notice_is_suppressed(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    import logging
+
+    hf_logger = logging.getLogger("huggingface_hub.utils._http")
+    notice = (
+        "Warning: You are sending unauthenticated requests to the HF Hub. "
+        "Please set a HF_TOKEN to enable higher rate limits and faster downloads."
+    )
+
+    def noisy(*args, **kwargs):
+        hf_logger.warning(notice)
+        hf_logger.warning("other hf server warning")
+        yield np.ones(10, dtype=np.float32)
+
+    monkeypatch.setattr(synth, "iter_audio", noisy)
+    with caplog.at_level(logging.WARNING):
+        assert cli.main(["hello", str(tmp_path / "x.wav")]) == 0
+    messages = [r.getMessage() for r in caplog.records]
+    assert notice not in messages
+    assert "other hf server warning" in messages
+    # The filter is scoped to synthesis and must not leak.
+    assert hf_logger.filters == []
 
 
 # --- playback ---------------------------------------------------------------
