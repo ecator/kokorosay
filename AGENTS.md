@@ -57,6 +57,7 @@ kokorosay/
 ├── README.md
 ├── pyproject.toml
 ├── uv.lock
+├── examples/            # pre-generated sample MP3s for all voices & generator script
 ├── src/
 │   └── kokorosay/
 │       ├── __init__.py
