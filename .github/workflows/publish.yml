@@ -16,8 +16,10 @@ jobs:
       id-token: write
 
     steps:
-      # 1. Check out code
+      # 1. Check out code (fetch-depth: 0 needed for hatch-vcs tag detection)
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       # 2. Install and configure uv
       - name: Set up uv
@@ -29,6 +31,8 @@ jobs:
       - name: Rewrite relative links in README
         run: |
           sed -i -E 's|\]\((\./)?([^:#)][^:)]*)\)|](${{ github.event.repository.html_url }}/blob/main/\2)|g' README.md
+          # Mark README.md as unchanged so hatch-vcs sees a clean worktree instead of appending a dirty dev suffix
+          git update-index --assume-unchanged README.md
 
       # 4. Build release distributions (dist/)
       - name: Build release distributions
