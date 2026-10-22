@@ -25,11 +25,16 @@ jobs:
         with:
           enable-cache: true
 
-      # 3. Build release distributions (dist/)
+      # 3. Rewrite relative links in README for PyPI
+      - name: Rewrite relative links in README
+        run: |
+          sed -i -E 's|\]\((\./)?([^:#)][^:)]*)\)|](${{ github.event.repository.html_url }}/blob/main/\2)|g' README.md
+
+      # 4. Build release distributions (dist/)
       - name: Build release distributions
         run: uv build
 
-      # 4. Publish directly to PyPI
+      # 5. Publish directly to PyPI
       # uv detects GitHub's id-token and handles OIDC exchange with PyPI without API tokens
       - name: Publish to PyPI
         run: uv publish
