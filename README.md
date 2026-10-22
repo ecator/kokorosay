@@ -14,7 +14,7 @@ Pass text as an argument or pipe it via standard input; `kokorosay` will immedia
 - ⚡ **Fast & Lightweight**: Built on the open-weights 82M parameter Kokoro model (`hexgrad/Kokoro-82M`).
 - 🔊 **Direct Low-Latency Playback**: Streams audio chunks to your default audio device in real time as they are generated.
 - 💾 **WAV & MP3 Export**: Concatenates synthesized chunks into a seamless 24 kHz audio file; parent directories are created automatically.
-- 🌐 **9 Languages & 50+ Voices**: Supports English, Japanese, Mandarin Chinese, Spanish, French, Hindi, Italian, and Brazilian Portuguese (pre-generated samples in [`examples/`](examples/)).
+- 🌐 **9 Languages & 50+ Voices**: Supports English, Japanese, Mandarin Chinese, Spanish, French, Hindi, Italian, and Brazilian Portuguese (pre-generated samples in [examples](examples)).
 - 🔀 **Automatic Language Detection**: The target language is derived directly from the voice name prefix (e.g. `jf_nezumi` &rarr; Japanese, `zf_xiaobei` &rarr; Mandarin, `af_heart` &rarr; American English).
 - 📥 **Pipeline & Stdin Friendly**: Supports `-` as input with explicit UTF-8 and BOM decoding, ideal for shell pipes and automation scripts.
 - 🎛️ **Synthesis Controls**: Easily adjust speech rate multiplier (`--speed`) or provide custom segment-splitting regexes (`--split-pattern`).
@@ -174,7 +174,7 @@ kokorosay --list-voices
 
 ### Voice Samples
 
-Pre-generated audio samples for all supported voices are available in the [`examples/`](examples/) directory. You can open that folder and listen to the `.mp3` files (e.g. `af_heart.mp3`, `jf_nezumi.mp3`, `zf_xiaobei.mp3`) to experience each voice firsthand. The samples can also be regenerated using [`examples/00_gen_all_voices.ps1`](examples/00_gen_all_voices.ps1).
+Pre-generated audio samples for all supported voices are available in the [examples](examples) directory. You can open that folder and listen to the `.mp3` files (e.g. `af_heart.mp3`, `jf_nezumi.mp3`, `zf_xiaobei.mp3`) to experience each voice firsthand. The samples can also be regenerated using [examples/00_gen_all_voices.ps1](examples/00_gen_all_voices.ps1).
 
 ---
 
