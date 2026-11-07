@@ -68,6 +68,20 @@ kokorosay --setup
 
 ---
 
+## Agent Skill
+
+This repository ships a `use-kokorosay` [agent skill](skills/use-kokorosay/SKILL.md) that teaches AI coding agents (Claude Code, Antigravity, Cursor, etc.) how to use `kokorosay`. Add it with [`npx skills`](https://github.com/vercel-labs/skills):
+
+```sh
+# Install the skill from this repository
+npx skills add ecator/kokorosay --skill use-kokorosay
+
+# Or list the skills available in the repository first
+npx skills add ecator/kokorosay --list
+```
+
+---
+
 ## Quick Start & Examples
 
 ### 1. Direct Playback
