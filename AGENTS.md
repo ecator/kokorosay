@@ -27,7 +27,7 @@ text-to-speech tool built on top of [Kokoro](https://github.com/hexgrad/kokoro).
 | Lint + format      | [ruff](https://docs.astral.sh/ruff/) |
 | Tests              | [pytest](https://docs.pytest.org/) |
 | Build backend      | hatchling + hatch-vcs (version derived from git tags) |
-| Python             | `>=3.14` (see `.python-version`) |
+| Python             | `>=3.14, <3.15` (see `.python-version`) |
 
 Common commands:
 

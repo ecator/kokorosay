@@ -24,7 +24,7 @@ Pass text as an argument or pipe it via standard input; `kokorosay` will immedia
 
 ## Installation
 
-`kokorosay` requires **Python 3.14+**.
+`kokorosay` requires **Python 3.14** (`>=3.14, <3.15`).
 
 ### Recommended: Using [uv](https://docs.astral.sh/uv/)
 
