@@ -1,5 +1,7 @@
 """Thin wrapper around the Kokoro pipeline."""
 
+import os
+import sys
 from collections.abc import Iterable, Iterator
 from typing import Any
 
@@ -21,6 +23,17 @@ def _to_numpy(audio: Any) -> np.ndarray:
     return np.asarray(audio, dtype=np.float32).reshape(-1)
 
 
+def _expose_virtual_env() -> None:
+    """Point ``VIRTUAL_ENV`` at the running environment if it is not already set.
+
+    spaCy (used by misaki for English) auto-downloads its model through
+    ``uv pip install`` when pip is missing, which fails with "No virtual
+    environment found" in ``uv tool`` environments because they are never activated.
+    """
+    if sys.prefix != sys.base_prefix:
+        os.environ.setdefault("VIRTUAL_ENV", sys.prefix)
+
+
 def iter_audio(
     text: str,
     voice: str,
@@ -34,6 +47,8 @@ def iter_audio(
     default applies.
     """
     lang_code = resolve_lang_code(voice)
+
+    _expose_virtual_env()
 
     from kokoro import KPipeline  # heavy import (torch), keep lazy
 

@@ -182,6 +182,9 @@ subprocess.check_call([sys.executable, "-m", "unidic", "download"])
      (shown on Windows without Developer Mode) and its "unauthenticated
      requests to the HF Hub" notice (the public model needs no `HF_TOKEN`);
      other `huggingface_hub` warnings remain visible.
+   - Before loading Kokoro, `VIRTUAL_ENV` is set to `sys.prefix` (if unset and
+     running inside a venv) so spaCy's automatic model download via
+     `uv pip install` works in non-activated `uv tool` environments.
 
 ### Kokoro reference
 
